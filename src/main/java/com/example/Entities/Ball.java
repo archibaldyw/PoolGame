@@ -19,8 +19,7 @@ public class Ball {
     }
 
     // 更新球的位置
-    public void update(double friction) {
-        velocity = FrictionPhysics.calculateVelocity(this, friction);
+    public void update() {
         setPos(getPos().add(velocity));
     }
     public double calculateVelocity() {

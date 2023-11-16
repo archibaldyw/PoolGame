@@ -1,6 +1,7 @@
 package com.example.Game;
 
 import com.example.Physics.CollisionPhysics;
+import com.example.Physics.FrictionPhysics;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.scene.Group;
@@ -225,7 +226,8 @@ public class Game {
         double friction = table.getFriction();
         ArrayList<Circle> holes = table.getPockets();
         for (Ball ball : allBalls) {
-            ball.update(friction);
+            ball.setVelocity(FrictionPhysics.calculateVelocity(ball, friction));
+            ball.update();
         }
     }
 
