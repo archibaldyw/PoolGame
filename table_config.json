@@ -1,5 +1,7 @@
 {
   "size": {"x": 900, "y": 450},
   "color": {"x": 0, "y": 0.4, "z": 0},
-  "friction": 0.1
+  "friction": 0.1,
+  "pocketNum": 6,
+  "pocketSize": 30
 }

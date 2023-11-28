@@ -4,6 +4,8 @@ public class TableConfig {
     private Vector2D size;
     private Vector3D color;
     private double friction;
+    private double pocketSize;
+    private int pocketNum;
 
     public Vector2D getSize() {
         return size;
@@ -17,6 +19,14 @@ public class TableConfig {
         return friction;
     }
 
+    public double getPocketSize() {
+        return pocketSize;
+    }
+
+    public int getPocketNum() {
+        return pocketNum;
+    }
+
     public void setSize(Vector2D size) {
         this.size = size;
     }
@@ -27,5 +37,13 @@ public class TableConfig {
 
     public void setFriction(double friction) {
         this.friction = friction;
+    }
+
+    public void setPocketSize(double pocketSize) {
+        this.pocketSize = pocketSize;
+    }
+
+    public void setPocketNum(int pocketNum) {
+        this.pocketNum = pocketNum;
     }
 }

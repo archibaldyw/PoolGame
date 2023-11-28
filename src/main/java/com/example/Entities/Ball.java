@@ -2,17 +2,26 @@ package com.example.Entities;
 
 import com.example.Physics.FrictionPhysics;
 
+import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
-
 public class Ball {
     private Circle circle;
     private Vector2D velocity;
     private int HP;
+    private BallColor.Color color;
     public Ball() {
         circle = new Circle(0, 0, 18);
         velocity = new Vector2D(0, 0);
         HP = 0;
+    }
+
+    public Ball(Ball ball) {
+        circle = new Circle(ball.getCircle().getCenterX(), ball.getCircle().getCenterY(), 18);
+        velocity = new Vector2D(ball.getVelocity().x, ball.getVelocity().y);
+        HP = ball.getHP();
+        color = ball.getColor();
+        circle.setFill(ball.getCircle().getFill());
     }
     public boolean contains(Vector2D pos) {
         return circle.contains(pos.x, pos.y);
@@ -37,11 +46,48 @@ public class Ball {
         return new Vector2D(circle.getCenterX(), circle.getCenterY());
     }
     public int getID() { return Integer.parseInt(circle.getId()); }
-    public Paint getColor() {
-        return circle.getFill();
+    public BallColor.Color getColor() {
+        return this.color;
     }
-    public void setColor(Paint color) {
-        circle.setFill(color);
+    public void setColor(String color) {
+        switch(color) {
+            case "WHITE":
+                this.color = BallColor.Color.WHITE;
+                circle.setFill(Color.WHITE);
+                break;
+            case "RED":
+                this.color = BallColor.Color.RED;
+                circle.setFill(Color.RED);
+                break;
+            case "BLUE":
+                this.color = BallColor.Color.BLUE;
+                circle.setFill(Color.BLUE);
+                break;
+            case "ORANGE":
+                this.color = BallColor.Color.ORANGE;
+                circle.setFill(Color.ORANGE);
+                break;
+            case "YELLOW":
+                this.color = BallColor.Color.YELLOW;
+                circle.setFill(Color.YELLOW);
+                break;
+            case "GREEN":
+                this.color = BallColor.Color.GREEN;
+                circle.setFill(Color.GREEN);
+                break;
+            case "PURPLE":
+                this.color = BallColor.Color.PURPLE;
+                circle.setFill(Color.PURPLE);
+                break;
+            case "BROWN":
+                this.color = BallColor.Color.BROWN;
+                circle.setFill(Color.BROWN);
+                break;
+            case "BLACK":
+                this.color = BallColor.Color.BLACK;
+                circle.setFill(Color.BLACK);
+                break;
+        }
     }
     public void setPos(Vector2D pos) {
         circle.setCenterX(pos.x);
@@ -57,6 +103,39 @@ public class Ball {
     public void setCircle(Circle circle) {
         this.circle = circle;
     }
-    public void setHP(int HP) { this.HP = HP; }
+    public void initHP() {
+        switch(this.color) {
+            case WHITE:
+                this.HP = 1;
+                break;
+            case RED:
+                this.HP = 1;
+                break;
+            case BLUE:
+                this.HP = 2;
+                break;
+            case ORANGE:
+                this.HP = 1;
+                break;
+            case YELLOW:
+                this.HP = 1;
+                break;
+            case GREEN:
+                this.HP = 2;
+                break;
+            case PURPLE:
+                this.HP = 2;
+                break;
+            case BROWN:
+                this.HP = 3;
+                break;
+            case BLACK:
+                this.HP = 3;
+                break;
+        }
+    }
+    public void setHP(int HP) {
+        this.HP = HP;
+    }
 
 }

@@ -1,5 +1,6 @@
 package com.example.Builder;
 
+import com.example.Entities.Vector2D;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 
@@ -14,13 +15,22 @@ public class BallBuilder {
         this.ballConfig = ballconfig;
     }
 
-    // 读取配置文件，构建母球 母球编号0
-    public Ball buildCueBall(Group root) {
+    public ArrayList<Ball> initBalls(Group root) {
+        ArrayList<Ball> balls = new ArrayList<>();
+        int n = ballConfig.getPosition().size();
+        for(int i=0; i<n; i++) {
+            Ball ball = buildBall(root, i);
+            balls.add(ball);
+        }
+        return balls;
+    }
+
+    public Ball buildBall(Group root, int num) {
         Ball ball = new Ball();
-        ball.setColor(ballConfig.getCueBallColor().toColor());
-        ball.setPos(ballConfig.getCueBallPos());
-        ball.setID(0);
-        ball.setHP(1);
+        ball.setColor(ballConfig.getColor().get(num));
+        ball.setPos(ballConfig.getPosition().get(num));
+        ball.setID(num);
+        ball.initHP();
         root.getChildren().add(ball.getCircle());
         return ball;
     }
@@ -35,43 +45,4 @@ public class BallBuilder {
         return ball;
     }
 
-    // 构建红球 红球标号为3-4
-    public ArrayList<Ball> initRedBalls(Group root) {
-        ArrayList<Ball> balls = new ArrayList<>();
-        int blueNum = ballConfig.getBlueBallPos().size();
-        int redNum = ballConfig.getRedBallPos().size();
-        for(int i=blueNum+1; i<=1+blueNum+redNum-1; i++) {
-            Ball ball = buildRedBall(root, i);
-            balls.add(ball);
-        }
-        return balls;
-    }
-
-    // 构建所有蓝球 蓝球标号为1-2
-    public ArrayList<Ball> initBlueBalls(Group root) {
-        ArrayList<Ball> balls = new ArrayList<>();
-        int blueNum = ballConfig.getBlueBallPos().size();
-        for(int i=1; i<=1+blueNum-1; i++) {
-            Ball ball = buildBlueBall(root, i);
-            balls.add(ball);
-        }
-        return balls;
-    }
-    public Ball buildBlueBall(Group root, int num) {
-        Ball ball = new Ball();
-        ball.setColor(Color.BLUE);
-        ball.setPos(ballConfig.getBlueBallPos().get(num-1));
-        ball.setID(num);
-        ball.setHP(1);
-        root.getChildren().add(ball.getCircle());
-        return ball;
-    }
-    public Ball buildRedBall(Group root, int num) {
-        Ball ball = new Ball();
-        ball.setColor(Color.RED);
-        ball.setPos(ballConfig.getRedBallPos().get(num-3));
-        ball.setID(num);
-        root.getChildren().add(ball.getCircle());
-        return ball;
-    }
 }

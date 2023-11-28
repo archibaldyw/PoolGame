@@ -18,6 +18,8 @@ public class TableConfigReader implements ConfigReader<TableConfig> {
             tableConfig.setColor(JsonUtils.getVector3D(json,"color"));
             tableConfig.setSize(JsonUtils.getVector2D(json,"size"));
             tableConfig.setFriction(json.getDouble("friction"));
+            tableConfig.setPocketSize(json.getDouble("pocketSize"));
+            tableConfig.setPocketNum(json.getInt("pocketNum"));
         } catch (Exception e) {
             e.printStackTrace();
         }

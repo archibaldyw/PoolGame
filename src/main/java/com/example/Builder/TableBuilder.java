@@ -22,7 +22,8 @@ public class TableBuilder {
         root.getChildren().add(table.getCanvas());
         double width = table.getSize().x;
         double height = table.getSize().y;
-        double holeRadius = 30;
+        double pocketRadius = tableConfig.getPocketSize();
+        int pocketNum = tableConfig.getPocketNum();
         double offset = 6;
         Vector2D pocketPos[] = {
                 new Vector2D(offset*2,offset*2),
@@ -32,9 +33,9 @@ public class TableBuilder {
                 new Vector2D(width-offset*2, offset*2),
                 new Vector2D(width-offset*2, height-offset*2)
         };
-        for(int i=0; i<6; i++) {
+        for(int i=0; i<pocketNum; i++) {
             Vector2D pos = pocketPos[i];
-            Circle hole = new Circle(pos.x, pos.y, holeRadius);
+            Circle hole = new Circle(pos.x, pos.y, pocketRadius);
             table.getPockets().add(hole);
             root.getChildren().add(hole);
         }

@@ -10,8 +10,6 @@
     {"color": "ORANGE", "x": 600, "y": 200},
     {"color": "YELLOW", "x": 600, "y": 300},
     {"color": "GREEN", "x": 700, "y": 200},
-    {"color": "PURPLE", "x": 700, "y": 300},
-    {"color": "BROWN", "x": 800, "y": 200},
-    {"color": "BLACK", "x": 800, "y": 300}
+    {"color": "PURPLE", "x": 700, "y": 300}
   ]
 }

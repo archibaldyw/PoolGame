@@ -12,6 +12,8 @@ public class Table {
     ArrayList<Circle> pockets;
     Canvas canvas;
 
+    double pocketSize;
+
     public Table() {
         canvas = new Canvas();
         pockets = new ArrayList<>();
@@ -60,5 +62,13 @@ public class Table {
 
     public void setCanvas(Canvas canvas) {
         this.canvas = canvas;
+    }
+
+    public void setPocketSize(double size) {
+        this.pocketSize = size;
+    }
+
+    public double getPocketSize() {
+        return pocketSize;
     }
 }

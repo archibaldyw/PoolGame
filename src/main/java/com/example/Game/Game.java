@@ -6,11 +6,15 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
@@ -25,16 +29,15 @@ import com.example.Builder.TableBuilder;
 
 import javafx.util.Pair;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Game {
-    private static final double KEY_FRAME_DURATION = 1.0/120.0;
+    private static final int KEY_FRAME = 120;
+    private static final double KEY_FRAME_DURATION = 1.0/KEY_FRAME;
     Stage primaryStage;
     private static final double BALL_SPEED = 0.2;
     private Group root;
     private ArrayList<Ball> allBalls;
-    private ArrayList<Ball> blueBalls;
-    private ArrayList<Ball> redBalls;
-    private Ball cueBall;
     private Table table;
     private double mouseX;
     private double mouseY;
@@ -43,6 +46,19 @@ public class Game {
     private Ball selectedBall;
     private boolean isDragging;
     private Ball virtualBall;
+    private Button bt_reset;
+    private Button bt_rollback;
+    private Button bt_save;
+    private Button bt_easy;
+    private Button bt_normal;
+    private Button bt_hard;
+    private int score = 0;
+    private int time = 0;
+    private final Text textScore = new Text(1000, 20, "Score: 0");
+    private final Text textTime = new Text(1000, 50, "Time: 0");
+    private int count = 0;
+    private final ArrayList<Save> saves = new ArrayList<Save>();
+    private ImageView cueStickImageView;
 
 
     public void init(Stage primaryStage) {
@@ -56,10 +72,10 @@ public class Game {
         scene.setOnKeyPressed(this::handleKeyPressed);
 
         // 设置窗口
-        primaryStage.setWidth(914);
+        primaryStage.setWidth(1200);
         primaryStage.setHeight(487);
         primaryStage.setScene(scene);
-        primaryStage.setTitle("JavaFXDemo");
+        primaryStage.setTitle("PoolGame");
         primaryStage.show();
         this.primaryStage = primaryStage;
 
@@ -68,7 +84,89 @@ public class Game {
         ConfigReader<BallConfig> ballConfigReader = factory.createConfigReader("ball");
         ConfigReader<TableConfig> tableConfigReader = factory.createConfigReader("table");
         tableConfig = tableConfigReader.readConfig("./table_config.json");
-        ballConfig = ballConfigReader.readConfig("./ball_config.json");
+        ballConfig = ballConfigReader.readConfig("./easy_config.json");
+
+        load();
+
+    }
+
+    public void initButton() {
+        ConfigReaderFactory factory = new ConfigReaderFactory();
+        ConfigReader<BallConfig> ballConfigReader = factory.createConfigReader("ball");
+        ConfigReader<TableConfig> tableConfigReader = factory.createConfigReader("table");
+
+        bt_easy = new Button("Easy");
+        bt_easy.setLayoutX(1000);
+        bt_easy.setLayoutY(100);
+        bt_easy.setOnAction(e -> {
+            tableConfig = tableConfigReader.readConfig("./table_config.json");
+            ballConfig = ballConfigReader.readConfig("./easy_config.json");
+            load();
+        });
+
+        bt_normal = new Button("Normal");
+        bt_normal.setLayoutX(1000);
+        bt_normal.setLayoutY(130);
+        bt_normal.setOnAction(e -> {
+            tableConfig = tableConfigReader.readConfig("./table_config.json");
+            ballConfig = ballConfigReader.readConfig("./normal_config.json");
+            load();
+        });
+
+        bt_hard = new Button("Hard");
+        bt_hard.setLayoutX(1000);
+        bt_hard.setLayoutY(160);
+        bt_hard.setOnAction(e -> {
+            tableConfig = tableConfigReader.readConfig("./table_config.json");
+            ballConfig = ballConfigReader.readConfig("./hard_config.json");
+            load();
+        });
+
+        bt_reset = new Button("Reset");
+        bt_reset.setLayoutX(1000);
+        bt_reset.setLayoutY(200);
+        bt_reset.setOnAction(e -> {
+            load();
+        });
+
+        bt_save = new Button("Save");
+        bt_save.setLayoutX(1000);
+        bt_save.setLayoutY(230);
+        bt_save.setOnAction(e -> {
+            save();
+        });
+
+        bt_rollback = new Button("Rollback");
+        bt_rollback.setLayoutX(1000);
+        bt_rollback.setLayoutY(260);
+        bt_rollback.setOnAction(e -> {
+            rollback();
+        });
+
+        root.getChildren().add(bt_easy);
+        root.getChildren().add(bt_normal);
+        root.getChildren().add(bt_hard);
+        root.getChildren().add(bt_reset);
+        root.getChildren().add(bt_save);
+        root.getChildren().add(bt_rollback);
+    }
+
+    public void initText() {
+        time = 0;
+        score = 0;
+        textTime.setText("Time: 0");
+        textScore.setText("Score: 0");
+        root.getChildren().add(textTime);
+        root.getChildren().add(textScore);
+    }
+
+    public void load() {
+        root.getChildren().clear();
+
+        saves.clear();
+
+        initButton();
+        initText();
 
         // 创造Table
         TableBuilder tableBuilder = new TableBuilder(tableConfig);
@@ -76,20 +174,19 @@ public class Game {
 
         // 创造Ball 建造者模式
         BallBuilder ballBuilder = new BallBuilder(ballConfig);
-        // 母球
-        cueBall = ballBuilder.buildCueBall(root);
-        // 红篮球
-        redBalls = ballBuilder.initRedBalls(root);
-        blueBalls = ballBuilder.initBlueBalls(root);
         // 虚拟球
         virtualBall = ballBuilder.buildVirtualBall(root);
         // 所有球的队列
-        allBalls = new ArrayList<Ball>();
-        allBalls.add(cueBall);
-        allBalls.addAll(blueBalls);
-        allBalls.addAll(redBalls);
-    }
+        allBalls = ballBuilder.initBalls(root);
 
+        Image cueStickImage = new Image("./cue_stick.png");
+        cueStickImageView = new ImageView(cueStickImage);
+        cueStickImageView.setFitWidth(cueStickImage.getWidth());
+        cueStickImageView.setFitHeight(cueStickImage.getHeight());
+        cueStickImageView.setVisible(false);
+        root.getChildren().add(cueStickImageView);
+
+    }
     public void playGame() {
         // 设置循环
         Timeline animationLoop = new Timeline();
@@ -101,7 +198,8 @@ public class Game {
     public void updateGame() {
         // 更新游戏
 
-        // 更新求的位置
+        updateTime();
+        updateScore();
         updateBalls();
         // 处理碰撞 包括球与球 球与边界
         handleCollision();
@@ -109,33 +207,29 @@ public class Game {
         handleBallInPocket();
     }
 
-    // 检测球与球是否发生碰撞的函数
-    public boolean checkBallCollision(Ball ball1, Ball ball2) {
-        double distance = ball1.distance(ball2);
-        return distance <= ball1.getCircle().getRadius() + ball2.getCircle().getRadius();
+    public void updateTime() {
+        count++;
+        if(count == KEY_FRAME) {
+            time++;
+            count = 0;
+        }
+        textTime.setText("Time: " + time);
     }
 
-    public boolean checkBallInPocket(Ball ball) {
-        ArrayList<Circle> pockets = table.getPockets();
-        for(Circle pocket : pockets) {
-            Ball tmpBall = new Ball();
-            tmpBall.setCircle(pocket);
-            if(tmpBall.contains(ball.getPos())) {
-                return true;
-            }
+    public void updateScore() {
+        textScore.setText("Score: " + score);
+    }
+
+    // 更新球的位置
+    private void updateBalls() {
+        double friction = table.getFriction();
+        ArrayList<Circle> holes = table.getPockets();
+        for (Ball ball : allBalls) {
+            ball.setVelocity(FrictionPhysics.calculateVelocity(ball, friction));
+            ball.update();
         }
-        return false;
     }
-    public boolean checkWin() {
-        return allBalls.size() == 1 && allBalls.get(0).getID() == 0;
-    }
-    public void showText(String s) {
-        Text text = new Text(s);
-        text.setFont(new Font(30));
-        text.setX(400);
-        text.setY(200);
-        root.getChildren().add(text);
-    }
+
     // 处理碰撞的函数
     public void handleCollision() {
         // 球与球的碰撞
@@ -169,77 +263,128 @@ public class Game {
     // 处理球进洞 顺带判断游戏结束或者失败
     public void handleBallInPocket() {
         ArrayList<Circle> holes = table.getPockets();
-        int blueNum = ballConfig.getBlueBallPos().size();
-        int redNum = ballConfig.getRedBallPos().size();
         for(int i=0; i<allBalls.size(); i++) {
             Ball ball = allBalls.get(i);
             if(checkBallInPocket(ball)) {
-                // 如果是母球
-                if(ball.getID() == 0) {
-                    if(ball.getHP() > 0) {
-                        // 重置母球
-                        ResetBallStrategy resetBallStrategy = new ResetBallStrategy();
-                        resetBallStrategy.handleBallInPocket(root, ball, ballConfig);
-                    }
-                    else {
+                RemoveBallStrategy removeBallStrategy = new RemoveBallStrategy();
+                ResetBallStrategy resetBallStrategy = new ResetBallStrategy();
+                switch(ball.getColor()) {
+                    case WHITE:
                         // 移除母球
-                        RemoveBallStrategy removeBallStrategy = new RemoveBallStrategy();
                         removeBallStrategy.handleBallInPocket(root, ball, ballConfig);
                         // 窗口输出失败
                         showText("You Lose!");
-                    }
-
-                }
-                // 如果是红球
-                else if(ball.getID() >= 1+blueNum && ball.getID() <= 1+blueNum+redNum-1) {
-                    // 移除红球
-                    RemoveBallStrategy removeBallStrategy = new RemoveBallStrategy();
-                    removeBallStrategy.handleBallInPocket(root, ball, ballConfig);
-                    allBalls.remove(ball);
-                    if(checkWin()) {
-                        showText("You Win!");
-                    }
-                }
-                // 如果是蓝球
-                else if(ball.getID() >= 1 && ball.getID() <= 1+blueNum-1) {
-                    if(ball.getHP() > 0) {
-                        // 重置蓝球
-                        ResetBallStrategy resetBallStrategy = new ResetBallStrategy();
-                        resetBallStrategy.handleBallInPocket(root, ball, ballConfig);
-                    }
-                    else {
-                        // 移除蓝球
-                        RemoveBallStrategy removeBallStrategy = new RemoveBallStrategy();
+                        break;
+                    case RED:
+                    case YELLOW:
+                    case ORANGE:
+                        // 移除红球
                         removeBallStrategy.handleBallInPocket(root, ball, ballConfig);
                         allBalls.remove(ball);
                         if(checkWin()) {
                             showText("You Win!");
                         }
-                    }
-
+                        score+=1;
+                        break;
+                    case BLUE:
+                    case GREEN:
+                    case PURPLE:
+                    case BROWN:
+                    case BLACK:
+                        if(ball.getHP() > 1) {
+                            // 重置球
+                            resetBallStrategy.handleBallInPocket(root, ball, ballConfig);
+                        }
+                        else {
+                            // 移除球
+                            removeBallStrategy.handleBallInPocket(root, ball, ballConfig);
+                            allBalls.remove(ball);
+                            if(checkWin()) {
+                                showText("You Win!");
+                            }
+                        }
+                        score+=2;
+                        break;
                 }
             }
         }
     }
-    // 更新球的位置
-    private void updateBalls() {
-        double friction = table.getFriction();
-        ArrayList<Circle> holes = table.getPockets();
-        for (Ball ball : allBalls) {
-            ball.setVelocity(FrictionPhysics.calculateVelocity(ball, friction));
-            ball.update();
+
+    // 检测球与球是否发生碰撞的函数
+    public boolean checkBallCollision(Ball ball1, Ball ball2) {
+        double distance = ball1.distance(ball2);
+        return distance <= ball1.getCircle().getRadius() + ball2.getCircle().getRadius();
+    }
+
+    public boolean checkBallInPocket(Ball ball) {
+        ArrayList<Circle> pockets = table.getPockets();
+        for(Circle pocket : pockets) {
+            Ball tmpBall = new Ball();
+            tmpBall.setCircle(pocket);
+            if(tmpBall.contains(ball.getPos())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean checkWin() {
+        return allBalls.size() == 1 && allBalls.get(0).getID() == 0;
+    }
+    public void showText(String s) {
+        Text text = new Text(s);
+        text.setFont(new Font(30));
+        text.setX(400);
+        text.setY(200);
+        root.getChildren().add(text);
+    }
+
+    public void save() {
+        ArrayList<Ball> saveBalls = new ArrayList<>();
+        for(Ball b : allBalls) {
+            saveBalls.add(new Ball(b));
+        }
+        saves.add(new Save(score, time, saveBalls));
+    }
+
+    public void rollback() {
+        if(saves.size() > 0) {
+            Save save = saves.get(saves.size()-1);
+            score = save.getScore();
+            time = save.getTime();
+            for(int i=0; i<allBalls.size(); i++) {
+                this.allBalls.get(i).setPos(save.getBalls().get(i).getPos());
+                this.allBalls.get(i).setVelocity(save.getBalls().get(i).getVelocity());
+            }
+            saves.remove(saves.size()-1);
         }
     }
+
 
     // 拖拽球的函数
     private void handleMouseDragged(MouseEvent event) {
         // 如果正在拖拽 且 选中了球
         if (isDragging && selectedBall != null) {
-            double tmpX = event.getX();
-            double tmpY = event.getY();
+            double tmpX = event.getSceneX();
+            double tmpY = event.getSceneY();
             // 计算虚拟球的位置 并 显示虚拟球
             virtualBall.getCircle().setVisible(true);
             virtualBall.setPos(new Vector2D(tmpX, tmpY));
+
+            this.cueStickImageView.setVisible(true);
+            // 设置旋转角度
+            double angle = Math.toDegrees(Math.atan2(this.selectedBall.getPos().y - tmpY,
+                    this.selectedBall.getPos().x - tmpX));
+
+            Rotate rotate = new Rotate();
+            // 设置旋转角度
+            rotate.setAngle(angle);
+            rotate.setPivotX(tmpX);
+            rotate.setPivotY(tmpY);
+            cueStickImageView.getTransforms().clear();  // 清除之前的变换
+            cueStickImageView.getTransforms().add(rotate);
+
+            this.cueStickImageView.setX(tmpX - this.cueStickImageView.getFitWidth());
+            this.cueStickImageView.setY(tmpY - this.cueStickImageView.getFitHeight() / 2);
         }
     }
 
@@ -247,9 +392,9 @@ public class Game {
     private void handleMousePressed(MouseEvent event) {
         mouseX = event.getX();
         mouseY = event.getY();
-        Ball ball = cueBall;    // 若开启作弊模式 则将此行注释掉
+        //Ball ball = cueBall;    // 若开启作弊模式 则将此行注释掉
 
-        //for(Ball ball : allBalls) {     // 作弊模式 快速通关测试
+        for(Ball ball : allBalls) {     // 作弊模式 快速通关测试
             // 如果鼠标点击的位置在球的范围内 且 球的速度为0
             if (ball.contains(new Vector2D(mouseX, mouseY)) && ball.getVelocity().equals(new Vector2D(0, 0))) {
                 mouseX = ball.getPos().x;
@@ -258,8 +403,7 @@ public class Game {
                 isDragging = true;
                 return;
             }
-        //}
-
+        }
     }
 
     // 松开鼠标的函数
@@ -281,6 +425,8 @@ public class Game {
 
             isDragging = false;
             selectedBall = null;
+
+            this.cueStickImageView.setVisible(false);
         }
     }
 
@@ -290,5 +436,4 @@ public class Game {
             init(primaryStage);
         }
     }
-
 }

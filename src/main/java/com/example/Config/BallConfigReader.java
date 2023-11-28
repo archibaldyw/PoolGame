@@ -1,5 +1,7 @@
 package com.example.Config;
 import com.example.Entities.BallConfig;
+import com.example.Entities.Vector2D;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import com.example.Utils.JsonUtils;
 import java.nio.file.Files;
@@ -12,11 +14,13 @@ public class BallConfigReader implements ConfigReader<BallConfig> {
         try{
             String content = new String(Files.readAllBytes(Paths.get(filePath)));
             JSONObject json = new JSONObject(content);
-            ballconfig.setCueBallColor(JsonUtils.getVector3D(json,"cueBallColor"));
-            ballconfig.setCueBallPos(JsonUtils.getVector2D(json,"cueBallPos"));
             ballconfig.setMass(json.getDouble("mass"));
-            ballconfig.setBlueBallPos(JsonUtils.getVector2DArray(json,"blueBallPos"));
-            ballconfig.setRedBallPos(JsonUtils.getVector2DArray(json,"redBallPos"));
+            JSONArray ballsJson = json.getJSONArray("Balls");
+            for(int i=0; i<ballsJson.length(); i++) {
+                JSONObject ballJson = ballsJson.getJSONObject(i);
+                ballconfig.getColor().add(ballJson.getString("color"));
+                ballconfig.getPosition().add(new Vector2D(ballJson.getDouble("x"), ballJson.getDouble("y")));
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
